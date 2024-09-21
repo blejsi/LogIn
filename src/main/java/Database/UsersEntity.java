@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Objects;
 
 @Table(name= "users")
 @Entity
@@ -45,5 +46,21 @@ public class UsersEntity {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 '}';
+
+
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UsersEntity that = (UsersEntity) o;
+        return Objects.equals(email, that.email) && Objects.equals(password, that.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, password);
     }
 }

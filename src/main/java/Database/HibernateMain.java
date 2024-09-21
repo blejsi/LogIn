@@ -1,5 +1,6 @@
 package Database;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -8,6 +9,7 @@ import org.hibernate.exception.GenericJDBCException;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 public class HibernateMain {
@@ -19,6 +21,10 @@ public class HibernateMain {
                 .buildSessionFactory();
 
 
+        UsersService usersService = new UsersService();
+        LogInSingInService logInSingInService = new LogInSingInService();
+
+
         System.out.println("Pershendetje ky eshte nje program i thjeshte: ");
 
         System.out.println("Pershendetje jeni te lutur te zgjidhni nje nga opsionet e cituara: \n" +
@@ -27,44 +33,67 @@ public class HibernateMain {
         Scanner scanner = new Scanner(System.in);
         int choice = scanner.nextInt();
 
+
+
+
       if(choice == 1) {
 
-          LocalDate selectedDate;
+
+        logInSingInService.LogIN(scanner, sessionFactory, usersService);
+
+
+
+      }else if (choice==2){
+
           UsersEntity user = new UsersEntity();
-          UsersService userService = new UsersService();
+
           System.out.println("Mirsevini ne websitin tone: ");
-          System.out.println("Ju lutem vendosni emrin tuaj: ");
-          String name = scanner.next();
-          System.out.println("Ju lutem vendosni mbiemrin tuaj: ");
-          String surname = scanner.next();
-          System.out.println("Ju lutem vendosni daten tuaj te lindjes ne formatin (YYYY-MM-DD): ");
-          String date = scanner.next();
-          selectedDate = LocalDate.parse(date);
-          System.out.println("Ju lutem vendosni gjinin tuaj (M/f): ");
-          String gender = scanner.next();
           System.out.println("Ju lutem vendosni emailin tuaj: ");
           String email = scanner.next();
           System.out.println("Ju lutem vendosni passwordin tuaj: ");
           String password = scanner.next();
 
 
-          user.setUsername(name);
-          user.setUserLastname(surname);
-          user.setDateOfBirth(selectedDate);
-          user.setGender(gender);
-          user.setEmail(email);
-          user.setPassword(password);
-
-          try {
-
-           userService.addEntity(user , sessionFactory);
 
 
+          Session session = sessionFactory.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+
+          List<UsersEntity> usersEntityList = session.createQuery(" FROM  UsersEntity u", UsersEntity.class)
+                  .getResultList();
+
+          tx.commit();
+          session.close();
 
 
-          } catch (GenericJDBCException e) {
-              System.out.println(e.getCause());
+          for (UsersEntity usersEntity : usersEntityList) {
+              if (usersEntity.getEmail().equals(email) && usersEntity.getPassword().equals(password)) {
+                  System.out.println("Miresevini!");
+                  break;
+              }else{
+
+                  if(logInSingInService.signIn(scanner, sessionFactory, usersService)){
+                      System.out.println("Mirsevini!");
+                      break;
+                  } else if (!logInSingInService.signIn(scanner, sessionFactory, usersService))  {
+                      int i=0;
+                      while(i<1){
+                          logInSingInService.signIn(scanner, sessionFactory, usersService);
+                          i++;
+                    }
+
+                  };
+                      System.out.println("Ju nuk jeni i rregjistruar");
+                      break;
+
+                  }
+
+
+              }
           }
+
+
+
 
       }
 
@@ -73,7 +102,6 @@ public class HibernateMain {
 
 
 
-
         }
-       }
+
 
